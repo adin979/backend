@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/package.json",
   "name": "database",
   "version": "1.0.0",
   "description": "",
@@ -7,7 +8,7 @@
     "dev": "node index.js",
     "run": "nodemon",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start":"node index"
+    "start": "node index"
   },
   "author": "wesaha3",
   "license": "ISC",
@@ -15,11 +16,13 @@
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
-    "express":"^4.19.2",
-    "jsonwebtoken": "^9.0.3"
+    "dotenv": "^18.0.8",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.11.2"
   },
   "devDependencies": {
-    "nodemon":"3.1.14"
+    "nodemon": "3.1.14"
   },
   "type": "module"
 }

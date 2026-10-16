@@ -6,11 +6,12 @@ import { Database } from './database.js';
 import { authenticateToken, valReqBody,errorHandler,checkDbOwnership } from './middleware.js';
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
+import {connectDB} from './connection.js';
 
 const app = express();
 const port = 3000;
 app.use(express.json())
-
+connectDB()
 app.use(cors({
   origin:'http://localhost:5173',
   credentials:true,

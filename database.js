@@ -1,27 +1,51 @@
 
-import { table } from 'console'
-import fs from 'fs'
+// import fs from 'fs'
+import mongoose from 'mongoose';
+
+const dynamicDbSchema = new mongoose.Schema({
+    name:{type:String,required:true,unique:true},
+    owner:{type:String,required:true},
+    tables:[
+        {
+            name:String,
+            cols:Array,
+            rows:Array
+        }
+    ]
+},{timestamps:true})
+
+const CloudDatabaseModel = mongoose.model('CloudDatabase',dynamicDbSchema)
+
 export class Database{
     constructor(name){
         this.name = name
         this.tables = []
-        this.filePath = `${name}_db.json`
+        // this.filePath = `${name}_db.json`
         this.owner = null
-        this._loadFromFile()
+        // this._loadFromFile()
+        this._loadFromCloud()
     }
 
-    static createDatabase(dbName,ownerUserName){
-        const filePath = `${dbName}_db.json`
-        if(fs.existsSync(filePath))throw new Error(`Database ${dbName} sudah ada`);
-        const initialData = {
-            name:dbName,
-            owner:ownerUserName,
-            tables:[]
-        }
-        fs.writeFileSync(filePath,JSON.stringify(initialData,null,2),'utf8')
-        return new Database(dbName)
+    static async createDatabase(dbName,ownerUserName){
+        const existing = await CloudDatabaseModel.findOne({name:dbName});
+        CloudDatabaseModel.findOne({name:dbName})
+        // .then(data=>{
+            // if(data)throw new Error(`Database ${dbName} sudah ada!`)
+                if(existing)throw new Error(`Database ${dbName} sudah ada!`);
+            // const filePath = `${dbName}_db.json`
+            // if(fs.existsSync(filePath))throw new Error(`Database ${dbName} sudah ada`);
+            const initialData = {
+                name:dbName,
+                owner:ownerUserName,
+                tables:[]
+            }
+            // fs.writeFileSync(filePath,JSON.stringify(initialData,null,2),'utf8')
+            const newDbDoc = new CloudDatabaseModel(initialData)
+            await newDbDoc.save();
+            return new Database(dbName)
+        // })
     }
-    createTable(tableName){
+    async createTable(tableName){
         let table = this.getTable(tableName)
         if(!table){
             table = {
@@ -30,7 +54,7 @@ export class Database{
                 rows:[]
             }
             this.tables.push(table)
-            this._autoSave()
+            await this._autoSave()
         }
         return this
     }
@@ -154,30 +178,43 @@ export class Database{
         this._autoSave();
         return true;
     }
-    _autoSave(){
-        const dataToSave={
-            name:this.name,
-            owner:this.owner,
-            tables:this.tables
-        }
-        fs.writeFileSync(this.filePath,JSON.stringify(dataToSave,null,2),'utf8')
+    // _autoSave(){
+    //     const dataToSave={
+    //         name:this.name,
+    //         owner:this.owner,
+    //         tables:this.tables
+    //     }
+    //     fs.writeFileSync(this.filePath,JSON.stringify(dataToSave,null,2),'utf8')
+    // }
+    async _autoSave(){
+        await CloudDatabaseModel.findOneAndUpdate(
+            {name:this.name},
+            {tables:this.tables},
+            {returnDocument:'after'}
+        );
     }
-
-    _loadFromFile(){
-        if(fs.existsSync(this.filePath)){
-            try {
-                const fileData = fs.readFileSync(this.filePath,'utf8')
-                const parsed = JSON.parse(fileData)
-
-                if(Array.isArray(parsed)){
-                    this.tables = parsed
-                }else{
-                    this.owner=parsed.owner||null
-                    this.tables = parsed.tables || []
-                }
-            } catch (error) {
-                this.tables = []
-            }
+    async _loadFromCloud(){
+        const dbDoc = await CloudDatabaseModel.findOne({name:this.name})
+        if(dbDoc){
+            this.owner = dbDoc.owner
+            this.tables = dbDoc.tables
         }
     }
+    // _loadFromFile(){
+    //     if(fs.existsSync(this.filePath)){
+    //         try {
+    //             const fileData = fs.readFileSync(this.filePath,'utf8')
+    //             const parsed = JSON.parse(fileData)
+
+    //             if(Array.isArray(parsed)){
+    //                 this.tables = parsed
+    //             }else{
+    //                 this.owner=parsed.owner||null
+    //                 this.tables = parsed.tables || []
+    //             }
+    //         } catch (error) {
+    //             this.tables = []
+    //         }
+    //     }
+    // }
 }
