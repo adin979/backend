@@ -62,6 +62,7 @@ app.post('/api/register',valReqBody,async(req,res,next)=>{
 })
 app.post('/api/login',valReqBody,async(req,res)=>{
 
+  console.log(req.body)
   const {username,password} = req.body
   const userTable = systemDb.getTable('user')
   const user = userTable?userTable.rows.find(u=>u.username === username):null
