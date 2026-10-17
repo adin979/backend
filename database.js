@@ -1,5 +1,3 @@
-
-// import fs from 'fs'
 import mongoose from 'mongoose';
 
 const dynamicDbSchema = new mongoose.Schema({
@@ -14,36 +12,27 @@ const dynamicDbSchema = new mongoose.Schema({
     ]
 },{timestamps:true})
 
-const CloudDatabaseModel = mongoose.model('CloudDatabase',dynamicDbSchema)
+export const CloudDatabaseModel = mongoose.model('CloudDatabase',dynamicDbSchema)
 
 export class Database{
     constructor(name){
         this.name = name
         this.tables = []
-        // this.filePath = `${name}_db.json`
         this.owner = null
-        // this._loadFromFile()
         this._loadFromCloud()
     }
 
     static async createDatabase(dbName,ownerUserName){
         const existing = await CloudDatabaseModel.findOne({name:dbName});
-        CloudDatabaseModel.findOne({name:dbName})
-        // .then(data=>{
-            // if(data)throw new Error(`Database ${dbName} sudah ada!`)
-                if(existing)throw new Error(`Database ${dbName} sudah ada!`);
-            // const filePath = `${dbName}_db.json`
-            // if(fs.existsSync(filePath))throw new Error(`Database ${dbName} sudah ada`);
-            const initialData = {
-                name:dbName,
-                owner:ownerUserName,
-                tables:[]
-            }
-            // fs.writeFileSync(filePath,JSON.stringify(initialData,null,2),'utf8')
-            const newDbDoc = new CloudDatabaseModel(initialData)
-            await newDbDoc.save();
-            return new Database(dbName)
-        // })
+        if(existing)throw new Error(`Database ${dbName} sudah ada!`);
+        const initialData = {
+            name:dbName,
+            owner:ownerUserName,
+            tables:[]
+        }
+        const newDbDoc = new CloudDatabaseModel(initialData)
+        await newDbDoc.save();
+        return new Database(dbName)
     }
     async createTable(tableName){
         let table = this.getTable(tableName)
@@ -178,14 +167,6 @@ export class Database{
         this._autoSave();
         return true;
     }
-    // _autoSave(){
-    //     const dataToSave={
-    //         name:this.name,
-    //         owner:this.owner,
-    //         tables:this.tables
-    //     }
-    //     fs.writeFileSync(this.filePath,JSON.stringify(dataToSave,null,2),'utf8')
-    // }
     async _autoSave(){
         await CloudDatabaseModel.findOneAndUpdate(
             {name:this.name},
@@ -200,21 +181,4 @@ export class Database{
             this.tables = dbDoc.tables
         }
     }
-    // _loadFromFile(){
-    //     if(fs.existsSync(this.filePath)){
-    //         try {
-    //             const fileData = fs.readFileSync(this.filePath,'utf8')
-    //             const parsed = JSON.parse(fileData)
-
-    //             if(Array.isArray(parsed)){
-    //                 this.tables = parsed
-    //             }else{
-    //                 this.owner=parsed.owner||null
-    //                 this.tables = parsed.tables || []
-    //             }
-    //         } catch (error) {
-    //             this.tables = []
-    //         }
-    //     }
-    // }
 }

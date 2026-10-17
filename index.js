@@ -1,8 +1,7 @@
 import express from 'express'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-import fs from 'fs';
-import { Database } from './database.js';
+import { CloudDatabaseModel, Database } from './database.js';
 import { authenticateToken, valReqBody,errorHandler,checkDbOwnership } from './middleware.js';
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
@@ -20,19 +19,25 @@ app.use(cors({
 }))
 app.use(cookieParser())
 
-let systemDb
-try {
-  systemDb=new Database('system')
-} catch (error) {
-  systemDb.Database.createDatabase('system','ADMIN')
+let systemDb;
+async function initSystemDb() {
+  try {
+    systemDb=new Database('system')
+    if(typeof systemDb._loadFromCloud === 'function')await systemDb._loadFromCloud();
+    } catch (error) {
+    if(typeof Database.createDatabase === 'function')await systemDb.Database.createDatabase('system','ADMIN')
+      systemDb = new Database('system')
+  }
+  
+  if(!systemDb.getTable('user')){
+    await systemDb.createTable('user')
+    await systemDb.addColl('user','id','INT',true,true,true)
+    await systemDb.addColl('user','username','VARCHAR(50)',true)
+    await systemDb.addColl('user','password','TEXT',true)
+  }
 }
+await initSystemDb()
 
-if(!systemDb.getTable('user')){
-  systemDb.createTable('user')
-  systemDb.addColl('user','id','INT',true,true,true)
-  systemDb.addColl('user','username','VARCHAR(50)',true)
-  systemDb.addColl('user','password','TEXT',true)
-}
 const JWT_SECRET = 'kunci_jwt'
 const REFRESH_JWT_SECRET = 'kunci_jwt'
 app.get('/', (req, res) => {
@@ -127,22 +132,9 @@ app.post('/api/refresh-token',(req,res)=>{
 app.get('/api/databases',authenticateToken,(req,res,next)=>{
   try {
     const currentUser=req.user.username
-    const files = fs.readdirSync('./');
-    const userDatabases = [];
-    files.forEach(f=>{
-      if(f.endsWith('_db.json')){
-        try {
-          const content = JSON.parse(fs.readFileSync(f,'utf8'));
-          if(content.owner === currentUser)userDatabases.push(content.name);
-        } catch (error) {
-          return;
-        }
-      }
-    })
-    res.json({
-      success:true,
-      databases:userDatabases
-    })
+    CloudDatabaseModel.findOne({owner:currentUser})
+    .then(data=>res.json({success:true,databases:data.name}))    
+
   } catch (error) {
     
   }
@@ -180,11 +172,13 @@ app.post('/api/databases',authenticateToken,valReqBody,(req,res,next)=>{
     const {dbName} = req.body
     const ownerUsername = req.user.username
     if(!dbName)res.status(400).json({success:false,error:'dbName harus diisi'});
-    const newDb = Database.createDatabase(dbName,ownerUsername)
-    res.status(201).json({
-      success:true,
-      message:`Database ${dbName} berhasil dibuat`,
-      filePath:newDb.filePath
+    Database.createDatabase(dbName,ownerUsername)
+    .then(data=>{
+      console.log(data)
+      res.status(201).json({
+        success:true,
+        message:`Database ${dbName} berhasil dibuat`,
+      })
     })
   } catch (error) {
     next(error)
