@@ -171,7 +171,7 @@ export class Database{
         await CloudDatabaseModel.findOneAndUpdate(
             {name:this.name},
             {tables:this.tables},
-            {returnDocument:'after'}
+            {returnDocument:'after',upsert:true}
         );
     }
     async _loadFromCloud(){

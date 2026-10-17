@@ -24,9 +24,10 @@ async function initSystemDb() {
   try {
     systemDb=new Database('system')
     if(typeof systemDb._loadFromCloud === 'function')await systemDb._loadFromCloud();
-    } catch (error) {
     if(typeof Database.createDatabase === 'function')await systemDb.Database.createDatabase('system','ADMIN')
       systemDb = new Database('system')
+  } catch (error) {
+    console.log(error)
   }
   
   if(!systemDb.getTable('user')){
@@ -67,7 +68,6 @@ app.post('/api/register',valReqBody,async(req,res,next)=>{
 })
 app.post('/api/login',valReqBody,async(req,res)=>{
 
-  console.log(req.body)
   const {username,password} = req.body
   const userTable = systemDb.getTable('user')
   const user = userTable?userTable.rows.find(u=>u.username === username):null
@@ -133,7 +133,7 @@ app.get('/api/databases',authenticateToken,(req,res,next)=>{
   try {
     const currentUser=req.user.username
     CloudDatabaseModel.findOne({owner:currentUser})
-    .then(data=>res.json({success:true,databases:data.name}))    
+    .then(data=>res.json({success:true,databases:data}))    
 
   } catch (error) {
     
