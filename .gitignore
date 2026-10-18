@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 .env
 node_modules
 node_modules/*
 mymongo/*
+=======
+node_module
+.env
+>>>>>>> 81f7a9587df98884caba5d5f7ede0516c4cc4439
