@@ -1,48 +1,24 @@
 {
-<<<<<<< HEAD
   "name": "backend",
-=======
-  "$schema": "https://json.schemastore.org/package.json",
-  "name": "database",
->>>>>>> 81f7a9587df98884caba5d5f7ede0516c4cc4439
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-<<<<<<< HEAD
     "test": "test",
     "start": "nodemon"
   },
   "author": "",
-=======
-    "dev": "node index.js",
-    "run": "nodemon",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index"
-  },
-  "author": "wesaha3",
->>>>>>> 81f7a9587df98884caba5d5f7ede0516c4cc4439
+
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^18.0.8",
-<<<<<<< HEAD
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.11.2",
     "nodemon": "^1.14.10"
   },
   "type": "commonjs"
-=======
-    "express": "^4.19.2",
-    "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.11.2"
-  },
-  "devDependencies": {
-    "nodemon": "3.1.14"
-  },
-  "type": "module"
->>>>>>> 81f7a9587df98884caba5d5f7ede0516c4cc4439
 }
