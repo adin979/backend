@@ -52,7 +52,7 @@ export class Database{
         return this.tables.find(t=>t.name === tableName) || null
     }
 
-    addColl(tableName,name,type,req=false,pk=false,ai=false){
+    async addColl(tableName,name,type,req=false,pk=false,ai=false){
         const table = this.getTable(tableName)
         if(!table){
             throw new Error('Table '+tableName+' tidak ditemukan!')
@@ -64,11 +64,11 @@ export class Database{
             pk:pk,
             ai:ai
         })
-        this._autoSave()
+        await this._autoSave()
         return this
     }
 
-    insert(tableName,object){
+    async insert(tableName,object){
      const table = this.getTable(tableName)
      if(!table) throw new Error(`Tabel ${tableName} tidak ditemukan!`);
      const allowedcols = table.cols.map(c=>c.name)
@@ -120,7 +120,7 @@ export class Database{
      const pkCol = table.cols.find(c=>c.pk)
      if(pkCol && !object[pkCol.name])throw new Error(`Isi primery key ${pkCol.name}`);
      table.rows.push(object)
-     this._autoSave()
+     await this._autoSave()
      return object
     }
     search(tableName,keyword,colName=null){
@@ -142,7 +142,7 @@ export class Database{
             })
         }
     }
-    update(tableName,fk,updateObj){
+    async update(tableName,fk,updateObj){
         const table = this.getTable(tableName);
         if(!table)throw new Error('Tabel tidak ditemukan');
         const pkCol = table.cols.find(c=>c.pk);
@@ -153,10 +153,10 @@ export class Database{
         if(rowIndex === -1)throw new Error(`Data dengan ID '${fk}' tidak ditemukan`);
         delete updateObj[pkCol.name];
         table.rows[rowIndex] = {...table.rows[rowIndex],...updateObj}
-        this._autoSave()
+        await this._autoSave()
         return table.rows[rowIndex]
     }
-    delete(tableName,fk){
+    async delete(tableName,fk){
         const table = this.getTable(tableName);
         if(!table)throw new Error(`Tabel '${tableName}' tidak ditemukan`);
         const pkCol = table.cols.find(c=>c.pk)
@@ -164,7 +164,7 @@ export class Database{
         const initialLength = table.rows.length
         table.rows = table.rows.filter(r=>String(r[pkCol.name]) !== String(fk))
         if(table.rows.length === initialLength)throw new Error(`Data dengan ID '${fk}' tidak ditemukan`);
-        this._autoSave();
+        await this._autoSave();
         return true;
     }
     async _autoSave(){

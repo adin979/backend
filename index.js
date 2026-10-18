@@ -187,23 +187,21 @@ app.post('/api/databases',authenticateToken,valReqBody,(req,res,next)=>{
 
 // api buat table
 app.post('/api/:dbName/tables',authenticateToken,checkDbOwnership,valReqBody,(req,res,next)=>{
-  try {
     const {tableName} = req.body
     const db = req.db
     if(!tableName || tableName === undefined || tableName === null || tableName === '')throw new Error('Harus diisi')
-    db.createTable(tableName)
-    res.status(201).json({
-      success:true,
-      message:`Table ${tableName} berhasil dibuat`,
-      tables:db.tables
+    return db.createTable(tableName)
+    .then(data=>{
+      res.status(201).json({
+        success:true,
+        message:`Table ${tableName} berhasil dibuat`,
+        tables:data
+      })
     })
-  } catch (error) {
-    next(error)
-  }
+    .catch(error=>next(error))
 })
 // TAMBAH KOLOM============================
-app.post('/api/:dbName/tables/:tableName/cols',authenticateToken,checkDbOwnership,valReqBody,async(req,res,next)=>{
-  try {
+app.post('/api/:dbName/tables/:tableName/cols',authenticateToken,checkDbOwnership,valReqBody,(req,res,next)=>{
     const {tableName} = req.params;
     const {name,type,req:isReq,pk,ai} = req.body
     const db = req.db
@@ -213,15 +211,15 @@ app.post('/api/:dbName/tables/:tableName/cols',authenticateToken,checkDbOwnershi
         error:'Kolom name dan type harus diisi'
       })
     }
-    const updatedCols = db.addColl(tableName,name,type,isReq,pk,ai)
-    res.status(201).json({
-      success:true,
-      message:`Kolom '${name}' berhasil ditambahkan ke tabel '${tableName}'`,
-      cols:updatedCols
+    db.addColl(tableName,name,type,isReq,pk,ai)
+    .then(data=>{
+      res.status(201).json({
+        success:true,
+        message:`Kolom '${name}' berhasil ditambahkan ke tabel '${tableName}'`,
+        cols:data
+      })
     })
-  } catch (error) {
-    next(error)
-  }
+    .catch(error=>next(error))
 })
 
 // api tambah data
