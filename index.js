@@ -122,7 +122,12 @@ app.post('/refresh-token',(req,res)=>{
   
   jwt.verify(refreshToken,REFRESH_SIGN,(error,decocedUser)=>{
     if(error){
-      res.clearCookie('refreshToken')
+      res.clearCookie('refreshToken',{
+            httpOnly:true,
+            secure:true,
+            sameSite:'none',
+            path:'/'
+        })
       return res.status(403).json({success:false,error:'Sesi kadaluarsa, silahkan login ulang'})
     }
     const newAccessToken = jwt.sign(
