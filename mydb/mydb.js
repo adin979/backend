@@ -24,7 +24,10 @@ const mydb = {
                 },
                 body:JSON.stringify({query:strQuery})
             })
-            .then(res=>res.json())
+            .then(res=>{
+                if(!res.ok)cb({status:res.status,message:res.json().error})
+                return res.json()
+            })
             .then(result=>{
                 cb(null,result)
             })

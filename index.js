@@ -145,15 +145,16 @@ app.get('/datakk',authenticateToken,(req,res)=>{
 app.get('/kk/:no_kk/warga',authenticateToken,(req,res)=>{
     const {no_kk}=req.params
     db.query(`SELECT * FROM warga WHERE kartu_keluarga = ${no_kk}`,(error,result)=>{
-        if(error)return res.status(500).json({success:false,error:error.message});
-        if(!(result.success))return res.json({success:false,error:result.error});
+        if(error)return res.status(parseInt(error.status)).json({success:false,error:error.message});
         return res.json({success:true,message:`${Object.keys(result.data).length||0}`,data:result.data})
     })
 })
 app.get('/warga',authenticateToken,(req,res)=>{
-    db.query(`SELECT * FROM warga LIMIT = 10`,(error,result)=>{
-        if(error){return res.status(500).json({success:false,error:error.message})}
-        else{return res.json({success:true,message:`${result.data?Object.keys(result.data).length:0} Data ditampilkan`,data:result.data})}
+    const {limit,offset}=req.query
+    db.query(`SELECT * FROM warga LIMIT = ${limit} OFFSET = ${offset}`,(error,result)=>{
+        if(error){return res.status(parseInt(error.status)).json({success:false,error:error.message})}
+        if(!result.success)return res.status()
+        return res.json({success:true,message:`${result.data?Object.keys(result.data).length:0} Data ditampilkan`,data:result.data})
     })
 })
 app.get('/warga/search',authenticateToken,(req,res)=>{
