@@ -83,7 +83,6 @@ app.post('/register',(req,res)=>{
 app.post('/login',valReqBody,(req,res)=>{
     const {username,password} = req.body
     db.query(`SELECT * FROM users WHERE username = '${username}'`,(error,result)=>{
-        // console.log(result)
         if(error)return res.status(500).json({success:false,error:error.message});
         const {id,username:user,password:pass,role}=result.data[0]
         if(!result||result.length===0)return res.status(400).json({success:false,error:'user tidak ketemu'})
