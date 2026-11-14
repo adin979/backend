@@ -6,8 +6,7 @@ const mydb = {
     database:'',
     token:null,
     createConnection(object) {
-        // this.host = object.host
-        this.host = 'https://database-lemon-ten.vercel.app'
+        this.host = object.host
         this.username = object.username
         this.password = object.password
         this.database = object.database
@@ -26,6 +25,24 @@ const mydb = {
                 body:JSON.stringify({query:strQuery})
             })
             .then(res=>{
+                if(res.status === 401 || res.status === 403){
+                    return this.refreshToken()
+                    .then(token=>{
+                        fetch(`${this.host}/api/db/${this.database}`,{
+                        method:'POST',
+                        headers:{
+                            'Content-type':'application/json',
+                            'Authorization':`Bearer ${token}`,
+                            'Credential':'include'
+                        },
+                        body:JSON.stringify({query:strQuery})
+                        })
+                        .then(response=>response.json())
+                        .then(data=>cb(null,data))
+                        .catch(error=>cb(error))
+                    })
+
+                }
                 return res.json()
             })
             .then(result=>{
@@ -42,6 +59,19 @@ const mydb = {
         .then(result=>result.json())
         .then(data=> data.token)
         .catch(error=>console.error(error))
-    }
+    },
+    refreshToken(){
+            fetch(`${mydb.host}/api/refresh-token`,{
+                method:'POST',
+                headers:headers,
+                credentials:'include'
+            })
+            .then((result)=>result.json())
+            .then((data)=>{
+                console.log(data)
+                localStorage.setItem('accessToken',data.accessToken)
+                return data.accessToken
+            })
+        }
 }
 module.exports= mydb
