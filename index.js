@@ -11,6 +11,12 @@ const app = express()
 const port = process.env.PORT || 3000
 // DEPENDENCIES==================
 
+app.use(cors({
+    origin:'http://localhost:5173',
+    credentials:true,
+    methods:['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+    allowedHeaders:['Content-type','Authorization']
+}))
 
 const { valReqBody, authenticateToken } = require('./middleware')
 const db = require('./connection')
@@ -18,12 +24,6 @@ const {SIGN,REFRESH_SIGN, apiGenai}=require('./util')
 const { error } = require('console')
 
 app.use(express.json())
-app.use(cors({
-    origin:'http://localhost:5173',
-    credentials:true,
-    methods:['GET','POST','PUT','DELETE','OPTIONS'],
-    allowedHeaders:['Content-type','Authorization']
-}))
 
 const storage = multer.diskStorage({
     destination:(req,file,cb)=>{
