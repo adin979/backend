@@ -108,8 +108,9 @@ app.post('/login',valReqBody,(req,res)=>{
         )
         res.cookie('refreshToken',refreshToken,{
             httpOnly:true,
-            secure:false,
-            sameSite:'strict',
+            secure:true,
+            sameSite:'none',
+            path:'/',
             maxAge:7*24*60*60*1000
         })
         return res.json({success:true,message:`User ${user} berhasil login dengan Role ${role}`,data:{token:token,role:role}})
