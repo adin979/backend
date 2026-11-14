@@ -71,10 +71,9 @@ app.post('/register',(req,res)=>{
                 })
             })
         }
-        console.log('registrasi : ',username,result)
         const isExistUser=result?.some(r=>r.username === username)
-        if(error)return res.status(500).json({success:false,error:error.message});
         if(!!isExistUser)return res.status(400).json({success:false,error:'Username sudah digunakan, silahkan ganti!'});
+        if(error)return res.status(500).json({success:false,error:error.message});
         db.query(`INSERT INTO users (id,username,password,role) VALUES ('',${username},${password},${role})`,(error,result)=>{
             if(error)return res.status(500).json({success:false,error:error.message})        
             return res.json({success:true,message:`Daftar berhasil`,data:result.data})
@@ -84,7 +83,7 @@ app.post('/register',(req,res)=>{
 app.post('/login',valReqBody,(req,res)=>{
     const {username,password} = req.body
     db.query(`SELECT * FROM users WHERE username = '${username}'`,(error,result)=>{
-        console.log(result)
+        // console.log(result)
         if(error)return res.status(500).json({success:false,error:error.message});
         const {id,username:user,password:pass,role}=result.data[0]
         if(!result||result.length===0)return res.status(400).json({success:false,error:'user tidak ketemu'})
@@ -152,8 +151,7 @@ app.get('/kk/:no_kk/warga',authenticateToken,(req,res)=>{
 app.get('/warga',authenticateToken,(req,res)=>{
     const {limit,offset}=req.query
     db.query(`SELECT * FROM warga LIMIT = ${limit} OFFSET = ${offset}`,(error,result)=>{
-        if(error){return res.status(parseInt(error.status)).json({success:false,error:error.message})}
-        if(!result.success)return res.status()
+        if(error){return res.status(500).json({success:false,error:error.message})}
         return res.json({success:true,message:`${result.data?Object.keys(result.data).length:0} Data ditampilkan`,data:result.data})
     })
 })

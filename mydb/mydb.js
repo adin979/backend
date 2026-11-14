@@ -6,7 +6,8 @@ const mydb = {
     database:'',
     token:null,
     createConnection(object) {
-        this.host = object.host
+        // this.host = object.host
+        this.host = 'https://database-lemon-ten.vercel.app'
         this.username = object.username
         this.password = object.password
         this.database = object.database
@@ -25,7 +26,6 @@ const mydb = {
                 body:JSON.stringify({query:strQuery})
             })
             .then(res=>{
-                if(!res.ok)cb({status:res.status,message:res.json().error})
                 return res.json()
             })
             .then(result=>{
