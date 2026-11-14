@@ -1,24 +1,59 @@
 const express = require('express')
 require('dotenv').config()
-const mydb  = require('./mydb/mydb')
-const app = express()
 const cors = require('cors')
+const multer = require('multer')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const path = require('path')
+const fs = require('fs')
 const cookieParser = require('cookie-parser')
+const app = express()
+const port = process.env.PORT || 3000
+// DEPENDENCIES==================
+
+
 const { valReqBody, authenticateToken } = require('./middleware')
 const db = require('./connection')
 const {SIGN,REFRESH_SIGN, apiGenai}=require('./util')
-
-const ai = new GoogleGenAi({apiKey:apiGenai})
+const { error } = require('console')
 
 app.use(express.json())
 app.use(cors({
-  origin:'http://localhost:5173',
-  credentials:true,
-  methods:['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders:['Content-type','Authorization']
+    origin:'http://localhost:5173',
+    credentials:true,
+    methods:['GET','POST','PUT','DELETE','OPTIONS'],
+    allowedHeaders:['Content-type','Authorization']
 }))
+
+const storage = multer.diskStorage({
+    destination:(req,file,cb)=>{
+        const uploadDir =path.join(__dirname,'./uploads')    
+        if(!fs.existsSync(uploadDir))fs.mkdirSync(uploadDir,{recursive:true});
+        cb(null,uploadDir)
+    },
+    filename:(req,file,cb)=>{
+        const uniqSuffix = Date.now()+'-'+Math.round(Math.random()*1E9)
+        cb(null,uniqSuffix+path.extname(file.originalname))
+    }
+})
+
+const upload = multer({storage:storage})
+
+app.post('/parse-document',upload.single('image'),(req,res)=>{
+    if(!req.file)return res.status(400).json({success:false,error:'File harus diisi'});
+    console.log('parse document : ',req.file.path)
+    const filePath = path.resolve(__dirname,req.file.path);
+    return fetch(apiGenai,{
+        method:'POST',
+        headers:{'Content-type':'application/json'},
+        body:JSON.stringify({filePath:`${filePath}`})
+    })
+    .then(response=>response.json())
+    .then(result=>{
+        return res.json({success:true,message:'Data berhasil diurai',aiData:{data:JSON.parse(result.data),filePath:filePath}})
+    }).catch(error=>res.status(500).json({success:false,error:error}))
+})
+
 app.use(cookieParser())
 
 app.get('/',(req,res)=>{
@@ -27,16 +62,19 @@ app.get('/',(req,res)=>{
 
 app.post('/register',(req,res)=>{
     const {username,password,role}=req.body
-    db.query(`SELECT * FROM users WHERE username = ${username}`,(error,result)=>{
-        if(!result||result===undefined)db.query(`CREATE TABLE users`,(error,result)=>{
-            return db.query(`INSERT INTO users (id,username,password,role) VALUES ('',${username},${password},${role})`,(error,result)=>{
-                if(error)return res.status(500).json({success:false,error:error.message})        
-                return res.json({success:true,message:`Daftar berhasil`,data:result.data})
-           })
-
-        })
+    db.query(`SELECT username FROM users`,(error,result)=>{
+        if(!result||result===undefined){db.query(
+            `CREATE TABLE users`,(error,result)=>{
+                return db.query(`INSERT INTO users (id,username,password,role) VALUES ('',${username},${password},${role})`,(error,result)=>{
+                    if(error)return res.status(500).json({success:false,error:error.message});   
+                    return res.json({success:true,message:`Daftar berhasil`,data:result.data})
+                })
+            })
+        }
+        const isExistUser=result.some(r=>r.username === username)
+        console.log('registrasi : ',username,result)
         if(error)return res.status(500).json({success:false,error:error.message});
-        if(result&&result.length>0)return res.status(400).json({success:false,error:'Username sudah digunakan, silahkan ganti!'});
+        if(!!isExistUser)return res.status(400).json({success:false,error:'Username sudah digunakan, silahkan ganti!'});
         db.query(`INSERT INTO users (id,username,password,role) VALUES ('',${username},${password},${role})`,(error,result)=>{
             if(error)return res.status(500).json({success:false,error:error.message})        
             return res.json({success:true,message:`Daftar berhasil`,data:result.data})
@@ -45,11 +83,12 @@ app.post('/register',(req,res)=>{
 })
 app.post('/login',valReqBody,(req,res)=>{
     const {username,password} = req.body
-    db.query(`SELECT * FROM users WHERE username = '${username}' `,async(error,result)=>{
-        if(error)return res.status(500).json({success:false,error:error.message})
-        const {id,username:user,password:pass,role}=result[0]
+    db.query(`SELECT * FROM users WHERE username = '${username}'`,(error,result)=>{
+        console.log(result)
+        if(error)return res.status(500).json({success:false,error:error.message});
+        const {id,username:user,password:pass,role}=result.data[0]
         if(!result||result.length===0)return res.status(400).json({success:false,error:'user tidak ketemu'})
-        const validatedPassword = await bcrypt.compare(password,pass)
+        const validatedPassword =  bcrypt.compare(password,pass)
         if(!validatedPassword)return res.status(400).json({success:false,error:'password salah!'});
         const token = jwt.sign(
             {
@@ -75,7 +114,7 @@ app.post('/login',valReqBody,(req,res)=>{
             sameSite:'strict',
             maxAge:7*24*60*60*1000
         })
-        res.json({success:true,message:`User ${user} berhasil login dengan Role ${role}`,data:{token:token,role:role}})
+        return res.json({success:true,message:`User ${user} berhasil login dengan Role ${role}`,data:{token:token,role:role}})
     })
 })
 app.post('/refresh-token',(req,res)=>{
@@ -96,69 +135,71 @@ app.post('/refresh-token',(req,res)=>{
   })
 })
 
-app.get('/warga',authenticateToken,(req,res)=>{
-    db.query(`SELECT * FROM warga`,(error,result)=>{
-        if(error)res.status(500).json({success:false,error:error})
-        res.json({success:true,message:Object.keys(result)?.length||0+' Data ditampilkan',data:result})
+app.get('/datakk',authenticateToken,(req,res)=>{
+    const {limit,offset}=req.query
+    db.query(`SELECT * FROM data_kk LIMIT = ${limit} OFFSET = ${offset}`,(error,result)=>{
+        if(error)return res.status(500).json({success:false,error:error.message});
+        return res.json({success:true,message:`${result.data?Object.keys(result.data).length:0} Data ditampilkan`,data:result.data})
     })
 })
-// app.get('/warga/:id',(req,res)=>{
-//     const [id] = req.params
-//     db.query(`SELECT * FROM warga WHERE id =`+id,(error,result)=>{
-//         if(error)res.status(500).json({success:false,error:error})
-//         res.json({success:true,message:'Data berhasil diambil',data:result})
-//     })
-// })
+app.get('/kk/:no_kk/warga',authenticateToken,(req,res)=>{
+    const {no_kk}=req.params
+    db.query(`SELECT * FROM warga WHERE kartu_keluarga = ${no_kk}`,(error,result)=>{
+        if(error)return res.status(500).json({success:false,error:error.message});
+        if(!(result.success))return res.json({success:false,error:result.error});
+        return res.json({success:true,message:`${Object.keys(result.data).length||0}`,data:result.data})
+    })
+})
+app.get('/warga',authenticateToken,(req,res)=>{
+    db.query(`SELECT * FROM warga LIMIT = 10`,(error,result)=>{
+        if(error){return res.status(500).json({success:false,error:error.message})}
+        else{return res.json({success:true,message:`${result.data?Object.keys(result.data).length:0} Data ditampilkan`,data:result.data})}
+    })
+})
+app.get('/warga/search',authenticateToken,(req,res)=>{
+    const {col,q} = req.query
+    db.query(`SELECT * FROM users WHERE`,(error,result)=>{
+        if(error)return res.status(500).json({success:false,error:error});
+        return res.json({success:true,message:'Data berhasil diambil',data:result})
+    })
+})
 
-app.post('/warga',(req,res)=>{
-    const {nama,no_kk,nik} = req.body
-    db.query(`INSERT INTO warga 
-        (id,nama,no_kk,nik) 
+app.post('/datakk',authenticateToken,(req,res)=>{
+    const {no_kk,nama_kepala_keluarga,alamat,rt_rw,desa_kelurahan,kecamatan,kabupaten_kota,provinsi,file_path}=req.body
+    db.query(`INSERT INTO data_kk 
+        (id,no_kk,nama_kepala_keluarga,alamat,rt_rw,desa_kelurahan,kecamatan,kabupaten_kota,provinsi,file_path)
         VALUES
-        ('',${nama},${no_kk},${nik})`,
+        ('',${no_kk},${nama_kepala_keluarga},${alamat},${rt_rw},${desa_kelurahan},${kecamatan},${kabupaten_kota},${provinsi},${file_path})`,
         (error,result)=>{
-            if(error)return error
+            if(error)return res.status(505).json({success:false,error:error.message});
+            if(!(result.success))return res.status(300).json({success:false,error:result.error})
+            return res.json({success:true,message:`data berhasil disimpan`,data:result})
+        }
+    )
+})
+
+app.post('/warga',authenticateToken,(req,res)=>{
+    const valueList = req.body.map(val=>{
+        const values = Object.values(val).map(val=>{
+            const escVal = String(val).replace(/'/g,"''")
+            return `'${escVal}'`
+        })
+        return `('',${values.join(', ')})`
+    }) 
+    db.query(`INSERT INTO warga 
+        (id,nama_lengkap,nik,jenis_kelamin,tempat_lahir,tanggal_lahir,status_hubungan,kartu_keluarga)
+        VALUES
+        ${valueList.join(',\n')}`,
+        (error,result)=>{
+            if(error)return res.status(505).json({success:false,error:error.message});
+            if(!(result.success))return res.status(300).json({success:false,error:result.error})
             res.json({success:true,message:'data berhasil ditambahkan',data:result.data})
         })
 })
 
-app.post('/genai',(req,res)=>{
-    const {image}=req.body
-    if(!image)return res.status(400).json({success:false,error:'File harus diisi'});
-    const base64Data = image.split(',')[1]||image;
-    ai.models.generateContent({
-        model:'gemini-2.5-flash',
-        contents:[
-            {
-                inlineData:{
-                    mimeType:'image/jpeg',
-                    data:base64Data
-                }
-            },
-            {
-                text: 'Ekstrak data dari gambar dokumen/struk ini dengan sangat akurat sesuai schema JSON.'
-            }
-        ],
-        config:{
-            responseMimeType:'application/json',
-            responseSchema:{
-                type:Type.OBJECT,
-                properties:{
-                    no_kk:{type:Type.STRING,description:'nomor yang ada di bawak kalimat "KARTU KELUARGA" setelah kata no.'}
-                },
-                required:[no_kk]
-            }
-        }
-    })
-    .then(response=>{response.text})
-    .then(result=>{
-        if(!result)throw new Error('Model tidak menghasilkan text');
-        return res.json({success:true,message:'Data berhasil dibaca',data:JSON.parse(result)})
-    })
-    .catch(error=>res.status(500).json({success:false,error:error.message}))
-})
 
-app.put('/warga/:id',(req,res)=>{
+
+app.put('/warga/:id',authenticateToken,(req,res)=>{
     const {id} = req.params
     const{nama,no_kk,nik}=req.body
     db.query(`UPDATE warga SET nama = ${nama} , no_kk = ${no_kk} , nik = ${nik} WHERE id = ${id}`,(error,result)=>{
@@ -167,7 +208,7 @@ app.put('/warga/:id',(req,res)=>{
     })
 })
 
-app.delete('/warga/:id',(req,res)=>{
+app.delete('/warga/:id',authenticateToken,(req,res)=>{
     const {id}=req.params
     db.query(`DELETE FROM warga WHERE id = ${id}`,(error,result)=>{
         if(error)return error;
@@ -177,6 +218,6 @@ app.delete('/warga/:id',(req,res)=>{
 
 
 
-app.listen(3001,()=>{
+app.listen(port,()=>{
     console.log('listen port 3001')
 })

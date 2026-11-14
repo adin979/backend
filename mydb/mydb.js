@@ -1,47 +1,44 @@
-const SqlParser = require('./queryParser')
-const localStorage = require('../localStorage')
 
-class Mydb {
-    constructor(){
-        this.host
-        this.username
-        this.password
-        this.database
-    }
+const mydb = {
+    host:'',
+    username:'',
+    password:'',
+    database:'',
+    token:null,
     createConnection(object) {
         this.host = object.host
         this.username = object.username
         this.password = object.password
         this.database = object.database
         if(this.username===''||this.password===''||this.database==='')return alert('harus diisi')
-        if (!localStorage.getItem('token')) {
-            if(this.host!==null)login(this.username,this.password)
-        }
+        if(!this.token||this.token===undefined)this.login(this.username,this.password).then(res=>this.token=res)
     return this
-}
-query(strQuery,cb){
-        console.log( 'query',this.host)
-        try {
-            const sqlParser = new SqlParser(this.database)
-            sqlParser.query(strQuery)
-            .then(result=>cb(null,result))
-            .catch(error=>cb(error))
-        } catch (error) {
-            cb(error)
-        }
+    },
+    query(strQuery,cb){
+            fetch(`${this.host}/api/db/${this.database}`,{
+                method:'POST',
+                headers:{
+                    'Content-type':'application/json',
+                    'Authorization':`Bearer ${this.token}`,
+                    'Credential':'include'
+                },
+                body:JSON.stringify({query:strQuery})
+            })
+            .then(res=>res.json())
+            .then(result=>{
+                cb(null,result)
+            })
+            .catch(error=>{cb(error)})
+    },
+    login(username,password){
+        return fetch(`${process.env.ENDPOINT_DB}/api/system/login`,{
+            method:'POST',
+            headers:{'Content-type':'application/json'},
+            body:JSON.stringify({username:username,password:password})
+        })
+        .then(result=>result.json())
+        .then(data=> data.token)
+        .catch(error=>console.error(error))
     }
 }
-function login(username,password){
-    fetch(`${process.env.ENDPOINT_DB}/api/login`,{
-        method:'POST',
-        headers:{'Content-type':'application/json'},
-        body:JSON.stringify({username:username,password:password})
-    })
-    .then(result=>result.json())
-    .then(data=>{
-        localStorage.setItem('token',data.token)
-    })
-    .catch(error=>console.error(error))
-}
-const mydb = new Mydb()
 module.exports= mydb
