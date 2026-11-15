@@ -5,7 +5,6 @@ const multer = require('multer')
 const cloudinary = require('cloudinary').v2
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const path = require('path')
 const cookieParser = require('cookie-parser')
 const app = express()
 const port = process.env.PORT || 3000
@@ -71,16 +70,16 @@ app.post('/parse-document',upload.single('image'),(req,res)=>{
     uploadFile(req.file.buffer)
     .then(result=>{
         const filePath = cloudinary.utils.private_download_url(result.public_id,'jpg',{expires_at:Math.floor(Date.now()/1000)+(60*5),attachment:false})
-    return fetch(apiGenai,{
-        method:'POST',
-        headers:{'Content-type':'application/json'},
-        body:JSON.stringify({filePath:`${filePath}`})
-    })
-    .then(response=>response.json())
-    .then(result=>{
-        const data = JSON.parse(result.data)
-        return res.json({success:true,message:'Data berhasil diurai',data:{data:data,filePath:result.public_id}})
-    }).catch(error=>res.status(500).json({success:false,error:error}))
+        return fetch(apiGenai,{
+            method:'POST',
+            headers:{'Content-type':'application/json'},
+            body:JSON.stringify({filePath:`${filePath}`})
+        })
+        .then(response=>response.json())
+        .then(result=>{
+            const imageData = JSON.parse(result.data)
+            return res.json({success:true,message:'Data berhasil diurai',data:{data:imageData.data,filePath:result.public_id}})
+        }).catch(error=>res.status(500).json({success:false,error:error}))
     })
 })
 
@@ -191,8 +190,16 @@ app.get('/warga',authenticateToken,(req,res)=>{
     })
 })
 app.get('/warga/search',authenticateToken,(req,res)=>{
-    const {col,q} = req.query
-    db.query(`SELECT * FROM users WHERE`,(error,result)=>{
+    const {col,val} = req.query
+    db.query(`SELECT * FROM warga WHERE ${col} LIKE ${val}`,(error,result)=>{
+        if(error)return res.status(500).json({success:false,error:error});
+        return res.json({success:true,message:'Data berhasil diambil',data:result})
+    })
+})
+
+app.get('/datakk/search',authenticateToken,(req,res)=>{
+    const {col,val} = req.query
+    db.query(`SELECT * FROM data_kk WHERE ${col} LIKE ${val}`,(error,result)=>{
         if(error)return res.status(500).json({success:false,error:error});
         return res.json({success:true,message:'Data berhasil diambil',data:result})
     })
