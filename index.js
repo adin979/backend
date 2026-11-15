@@ -2,6 +2,7 @@ const express = require('express')
 require('dotenv').config()
 const cors = require('cors')
 const multer = require('multer')
+const cloudinary = require('cloudinary').v2
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const path = require('path')
@@ -25,33 +26,65 @@ const { error } = require('console')
 
 app.use(express.json())
 
-const storage = multer.diskStorage({
-    destination:(req,file,cb)=>{
-        const uploadDir =path.join(__dirname,'./uploads')    
-        if(!fs.existsSync(uploadDir))fs.mkdirSync(uploadDir,{recursive:true});
-        cb(null,uploadDir)
-    },
-    filename:(req,file,cb)=>{
-        const uniqSuffix = Date.now()+'-'+Math.round(Math.random()*1E9)
-        cb(null,uniqSuffix+path.extname(file.originalname))
-    }
+cloudinary.config({
+    cloud_name:process.env.CLOUDINARY_CLOUD_NAME,
+    api_key:process.env.CLOUDINARY_API_KEY,
+    api_secret:process.env.CLOUDINARY_API_SECRET
 })
+// const storage = multer.diskStorage({
+//     destination:(req,file,cb)=>{    
+//         const uploadDir =path.join(__dirname,'./uploads')    
+//         if(!fs.existsSync(uploadDir))fs.mkdirSync(uploadDir,{recursive:true});
+//         cb(null,uploadDir)
+//     },
+//     filename:(req,file,cb)=>{
+//         const uniqSuffix = Date.now()+'-'+Math.round(Math.random()*1E9)
+//         cb(null,uniqSuffix+path.extname(file.originalname))
+//     }
+// })
+const upload = multer({
+    storage:multer.memoryStorage(),
+    limit:{fileSize:4*1024*1024}
+})
+// const upload = multer({storage:storage})
 
-const upload = multer({storage:storage})
+const uploadFile=(fileBuffer)=>{
+    return new Promise((resolve,reject)=>{
+        const stream=cloudinary.uploader.upload_stream({
+            folder:'upload',
+            type:'private',
+            resource_type:'image',
+            transformation:[
+                {width:1800,crop:'limit'},
+                {quality:'auto:good',fetch_format:'jpg'}
+            ]
+        },
+        (error,result)=>{
+            if(error)reject(error);
+            else resolve(result)
+        }
+    )
+    stream.end(fileBuffer)
+    })
+}
 
 app.post('/parse-document',upload.single('image'),(req,res)=>{
     if(!req.file)return res.status(400).json({success:false,error:'File harus diisi'});
-    console.log('parse document : ',req.file.path)
-    const filePath = path.resolve(__dirname,req.file.path);
-    return fetch(apiGenai,{
+    uploadFile(req.file.buffer)
+    .then(result=>{
+        const filePath = cloudinary.utils.private_download_url(result.public_id,'jpg',{expires_at:Math.floor(Date.now()/1000)+(60*5),attachment:false})
+    return fetch('http://localhost:3003/api/genai',{
         method:'POST',
         headers:{'Content-type':'application/json'},
         body:JSON.stringify({filePath:`${filePath}`})
     })
     .then(response=>response.json())
     .then(result=>{
-        return res.json({success:true,message:'Data berhasil diurai',aiData:{data:JSON.parse(result.data),filePath:filePath}})
+        const data = JSON.parse(result.data)
+        console.log(data)
+        return res.json({success:true,message:'Data berhasil diurai',data:{data:data,filePath:filePath}})
     }).catch(error=>res.status(500).json({success:false,error:error}))
+    })
 })
 
 app.use(cookieParser())
