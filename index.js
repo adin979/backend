@@ -79,7 +79,7 @@ app.post('/parse-document',upload.single('image'),(req,res)=>{
     .then(response=>response.json())
     .then(result=>{
         const data = JSON.parse(result.data)
-        return res.json({success:true,message:'Data berhasil diurai',data:{data:data,filePath:filePath}})
+        return res.json({success:true,message:'Data berhasil diurai',data:{data:data,filePath:result.public_id}})
     }).catch(error=>res.status(500).json({success:false,error:error}))
     })
 })
@@ -201,7 +201,7 @@ app.get('/warga/search',authenticateToken,(req,res)=>{
 app.post('/datakk',authenticateToken,(req,res)=>{
     const {no_kk,nama_kepala_keluarga,alamat,rt_rw,desa_kelurahan,kecamatan,kabupaten_kota,provinsi,file_path}=req.body
     db.query(`INSERT INTO data_kk 
-        (id,no_kk,nama_kepala_keluarga,alamat,rt_rw,desa_kelurahan,kecamatan,kabupaten_kota,provinsi,file_path)
+        (id,no_kk,nama_kepala_keluarga,alamat,rt_rw,desa_kelurahan,kecamatan,kabupaten_kota,provinsi,image_url)
         VALUES
         ('',${no_kk},${nama_kepala_keluarga},${alamat},${rt_rw},${desa_kelurahan},${kecamatan},${kabupaten_kota},${provinsi},${file_path})`,
         (error,result)=>{
