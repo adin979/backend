@@ -15,6 +15,7 @@ const mydb = {
     return this
     },
     query(strQuery,cb){
+        console.log(this.database)
             fetch(`${this.host}/api/db/${this.database}`,{
                 method:'POST',
                 headers:{

@@ -73,7 +73,7 @@ app.post('/parse-document',upload.single('image'),(req,res)=>{
     uploadFile(req.file.buffer)
     .then(result=>{
         const filePath = cloudinary.utils.private_download_url(result.public_id,'jpg',{expires_at:Math.floor(Date.now()/1000)+(60*5),attachment:false})
-    return fetch('http://localhost:3003/api/genai',{
+    return fetch(apiGenai,{
         method:'POST',
         headers:{'Content-type':'application/json'},
         body:JSON.stringify({filePath:`${filePath}`})
