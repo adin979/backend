@@ -6,7 +6,6 @@ const cloudinary = require('cloudinary').v2
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const path = require('path')
-const fs = require('fs')
 const cookieParser = require('cookie-parser')
 const app = express()
 const port = process.env.PORT || 3000
@@ -22,7 +21,6 @@ app.use(cors({
 const { valReqBody, authenticateToken } = require('./middleware')
 const db = require('./connection')
 const {SIGN,REFRESH_SIGN, apiGenai}=require('./util')
-const { error } = require('console')
 
 app.use(express.json())
 
@@ -81,7 +79,6 @@ app.post('/parse-document',upload.single('image'),(req,res)=>{
     .then(response=>response.json())
     .then(result=>{
         const data = JSON.parse(result.data)
-        console.log(data)
         return res.json({success:true,message:'Data berhasil diurai',data:{data:data,filePath:filePath}})
     }).catch(error=>res.status(500).json({success:false,error:error}))
     })
