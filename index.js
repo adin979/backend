@@ -221,7 +221,7 @@ app.post('/warga',authenticateToken,(req,res)=>{
         return `('',${values.join(', ')})`
     }) 
     db.query(`INSERT INTO warga 
-        (id,nama_lengkap,nik,jenis_kelamin,tempat_lahir,tanggal_lahir,status_hubungan,kartu_keluarga)
+        (id,nama_lengkap,nik,jenis_kelamin,tempat_lahir,tanggal_lahir,status_hubungan,no_kk)
         VALUES
         ${valueList.join(',\n')}`,
         (error,result)=>{
