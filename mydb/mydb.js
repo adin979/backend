@@ -68,9 +68,18 @@ const mydb = {
                 'Credential':'include'
             },
         })
-        .then((result)=>result.json())
+        .then((result)=>{
+            if(result.status&&(result.status === 403 || result.status === 401)){
+                return this.login(this.username,this.password)
+                .then(data=>{
+                    this.token=data
+                    return data
+                })
+                .catch(error=>{throw new Error(error)})
+            }
+            return result.json()
+        })
         .then((data)=>{
-            console.log(data)
             localStorage.setItem('accessToken',data.accessToken)
             return data.accessToken
         })
