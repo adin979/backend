@@ -41,7 +41,6 @@ const mydb = {
                         .then(data=>cb(null,data))
                         .catch(error=>cb(error))
                     })
-
                 }
                 return res.json()
             })
@@ -61,20 +60,20 @@ const mydb = {
         .catch(error=>console.error(error))
     },
     refreshToken(){
-            fetch(`${mydb.host}/api/refresh-token`,{
-                method:'POST',
-                headers:{
-                    'Content-type':'application/json',
-                    'Authorization':`Bearer ${this.token}`,
-                    'Credential':'include'
-                },
-            })
-            .then((result)=>result.json())
-            .then((data)=>{
-                console.log(data)
-                localStorage.setItem('accessToken',data.accessToken)
-                return data.accessToken
-            })
-        }
+        return fetch(`${mydb.host}/api/refresh-token`,{
+            method:'POST',
+            headers:{
+                'Content-type':'application/json',
+                'Authorization':`Bearer ${this.token}`,
+                'Credential':'include'
+            },
+        })
+        .then((result)=>result.json())
+        .then((data)=>{
+            console.log(data)
+            localStorage.setItem('accessToken',data.accessToken)
+            return data.accessToken
+        })
+    }
 }
 module.exports= mydb
