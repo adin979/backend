@@ -65,7 +65,7 @@ const mydb = {
                 method:'POST',
                 headers:{
                     'Content-type':'application/json',
-                    'Authorization':`Bearer ${token}`,
+                    'Authorization':`Bearer ${this.token}`,
                     'Credential':'include'
                 },
             })
