@@ -15,7 +15,6 @@ const mydb = {
     return this
     },
     query(strQuery,cb){
-        console.log(this.database)
             fetch(`${this.host}/api/db/${this.database}`,{
                 method:'POST',
                 headers:{
@@ -64,8 +63,11 @@ const mydb = {
     refreshToken(){
             fetch(`${mydb.host}/api/refresh-token`,{
                 method:'POST',
-                headers:headers,
-                credentials:'include'
+                headers:{
+                    'Content-type':'application/json',
+                    'Authorization':`Bearer ${token}`,
+                    'Credential':'include'
+                },
             })
             .then((result)=>result.json())
             .then((data)=>{
