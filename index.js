@@ -10,8 +10,17 @@ const app = express()
 const port = process.env.PORT || 3000
 // DEPENDENCIES==================
 
+const allowedOrigins = [
+'http://localhost:5173',
+'http://10.113.195.95:5173',
+'http://172.27.16.1:5173'
+]
+
 app.use(cors({
-    origin:'http://localhost:5173',
+    origin:function(origin,callback){
+        if(!origin||allowedOrigins.indexOf(origin) !== -1){callback(null,true)}
+        else{callback(new Error('Ditolak oleh kebijakan CORS'))}
+    },
     credentials:true,
     methods:['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
     allowedHeaders:['Content-type','Authorization']
