@@ -31,6 +31,7 @@ const mydb = {
             if(response.status===401||response.status===403){
                 const accessToken = await this.refreshToken()
                 this.token=accessToken
+                console.log(this.token)
                 response = await fetchData(accessToken)
             }
             const data =await response.json()
