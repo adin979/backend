@@ -70,6 +70,7 @@ const mydb = {
         })
         .then((result)=>result.json())
         .then((data)=>{
+            console.log(data)
             this.token=data.accessToken
             data.accessToken})
         .catch(error=>console.error(error))
