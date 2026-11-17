@@ -60,7 +60,7 @@ const mydb = {
         .catch(error=>console.error(error))
     },
     refreshToken(){
-        return fetch(`${mydb.host}/api/refresh-token`,{
+        return fetch(`${mydb.host}/api/${this.database}/refresh-token`,{
             method:'POST',
             headers:{
                 'Content-type':'application/json',
