@@ -78,9 +78,9 @@ app.post('/parse-document',upload.single('image'),(req,res)=>{
         })
         .then(response=>response.json())
         .then(result=>{
-            console.log(result)
-            const imageData = JSON.parse(result.data)
-            return res.json({success:true,message:'Data berhasil diurai',data:{data:result.data,filePath:result.public_id}})
+            const imageData = result.data
+            imageData.file_path=public_id
+            return res.json({success:true,message:'Data berhasil diurai',data:imageData})
         }).catch(error=>res.status(500).json({success:false,error:error}))
     })
 })
