@@ -11,8 +11,7 @@ const mydb = {
         this.password = object.password
         this.database = object.database
         if(this.username===''||this.password===''||this.database==='')return alert('harus diisi')
-        // if(!this.token||this.token===undefined)
-            this.login(this.username,this.password).then(res=>this.token=res)
+        if(!this.token||this.token===undefined)this.login(this.username,this.password).then(res=>this.token=res)
     return this
     },
     async query(strQuery,cb){
