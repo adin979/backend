@@ -105,7 +105,7 @@ app.post('/register',(req,res)=>{
         if(result&&result.length>0)return res.status(400).json({success:false,error:`Username ${username} sudah digunakan, silahkan ganti!`})
         db.query(`INSERT INTO users (id,username,password,role) VALUES ('',${username},${password},${role})`,(error,result)=>{
             if(error)return res.status(500).json({success:false,error:error.message})        
-            return res.json({success:true,message:`Daftar berhasil`,data:result.data})
+            return res.json({success:true,message:`Daftar berhasil`,data:result})
         })
     })
 })
