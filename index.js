@@ -93,6 +93,7 @@ app.get('/',(req,res)=>{
 app.post('/register',(req,res)=>{
     const {username,password,role}=req.body
     db.query(`SELECT username FROM users`,(error,result)=>{
+        console.log(result,error)
         if(!result||result===undefined){db.query(
             `CREATE TABLE users`,(error,result)=>{
                 return db.query(`INSERT INTO users (id,username,password,role) VALUES ('',${username},${password},${role})`,(error,result)=>{
