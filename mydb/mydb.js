@@ -15,31 +15,23 @@ const mydb = {
     return this
     },
     async query(strQuery,cb){
-        let response;
         try{
-            response = await fetch(`${this.host}/api/db/${this.database}`,{
-                method:'POST',
-                headers:{
-                    'Content-type':'application/json',
-                    'Authorization':`Bearer ${this.token}`,
-                    'Credential':'include'
-                },
-                body:JSON.stringify({query:strQuery})
-            })
-            if(response.status===401||response.status===403){
-                const accessToken = await this.refreshToken()
-                result= await fetch(`${this.host}/api/db/${this.database}`,{
+            const fetchData =async(token)=>{
+                return await fetch(`${this.host}/api/db/${this.database}`,{
                     method:'POST',
                     headers:{
                         'Content-type':'application/json',
-                        'Authorization':`Bearer ${accessToken}`,
-                        'Credential':'include'
+                        'Authorization':`Bearer ${token}`,
                     },
+                    Credential:'include',
                     body:JSON.stringify({query:strQuery})
                 })
-                const data =await response.json()
-                if(data.success){cb(data)}
-                else{cb({status:response.status,message:data.error})}
+            }
+            let response = await fetchData(this.token)
+            if(response.status===401||response.status===403){
+                const accessToken = await this.refreshToken()
+                this.token=accessToken
+                response = await fetchData(accessToken)
             }
             const data =await response.json()
             if(data.success){cb(null,response)}
@@ -57,16 +49,17 @@ const mydb = {
         .catch(error=>console.error(error))
     },
     refreshToken(){
-        return fetch(`${mydb.host}/api/system/refresh-token`,{
+        return fetch(`${this.host}/api/system/refresh-token`,{
             method:'POST',
             headers:{
                 'Content-type':'application/json',
-                'Authorization':`Bearer ${this.token}`,
-                'Credential':'include'
+                'Authorization':`Bearer ${this.token}`
             },
+            Credential:'include'
         })
         .then((result)=>result.json())
         .then((data)=>data.accessToken)
+        .catch(error=>console.error(error))
     }
 }
 module.exports= mydb
