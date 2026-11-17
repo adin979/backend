@@ -13,6 +13,7 @@ const port = process.env.PORT || 3000
 const allowedOrigins = [
 'http://localhost:5173',
 'http://10.113.195.95:5173',
+'http://192.168.0.101:5173',
 'http://172.27.16.1:5173'
 ]
 
