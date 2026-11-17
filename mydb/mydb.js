@@ -31,11 +31,10 @@ const mydb = {
             if(response.status===401||response.status===403){
                 const accessToken = await this.refreshToken()
                 this.token=accessToken
-                console.log(this.token)
                 response = await fetchData(accessToken)
             }   
-            console.log("query : ",response.json())
-            const data =await response.json()
+            // console.log("query : ",response.json())
+            const data =response.json()
             if(data.success){cb(null,response)}
             else{cb({status:response.status,message:data.error})}          
             }catch(error){console.error("query error : ",error);cb(error)}
