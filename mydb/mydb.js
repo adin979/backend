@@ -38,7 +38,7 @@ const mydb = {
                     body:JSON.stringify({query:strQuery})
                 })
             }
-            const data = response.json()
+            const data =await response.json()
             console.log(data)
             cb(null,data)          
             }catch(error){console.error(error);cb(error)}
