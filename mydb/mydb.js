@@ -28,18 +28,18 @@ const mydb = {
             })
             if(response.status===401||response.status===403){
                 const accessToken = await this.refreshToken()
-                    result= await fetch(`${this.host}/api/db/${this.database}`,{
-                        method:'POST',
-                        headers:{
-                            'Content-type':'application/json',
-                            'Authorization':`Bearer ${accessToken}`,
-                            'Credential':'include'
-                        },
-                        body:JSON.stringify({query:strQuery})
-                    })
-                }
-
-            }catch(error){console.error(error)}
+                result= await fetch(`${this.host}/api/db/${this.database}`,{
+                    method:'POST',
+                    headers:{
+                        'Content-type':'application/json',
+                        'Authorization':`Bearer ${accessToken}`,
+                        'Credential':'include'
+                    },
+                    body:JSON.stringify({query:strQuery})
+                })
+            }
+            cb(null,response.json())          
+            }catch(error){console.error(error);cb(error)}
     },
     login(username,password){
         return fetch(`${process.env.ENDPOINT_DB}/api/system/login`,{
