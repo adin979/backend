@@ -37,6 +37,10 @@ const mydb = {
                     },
                     body:JSON.stringify({query:strQuery})
                 })
+                const data =await response.json()
+                if(data.success){cb(data)}
+                else{response}
+                return;
             }
             const data =await response.json()
             if(data.success){cb(null,response)}
