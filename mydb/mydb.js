@@ -67,6 +67,7 @@ const mydb = {
         })
         .then((result)=>{result.json()})
         .then((data)=>{
+            console.log(data)
             this.token=data
             data})
         .catch(error=>console.error(error))
