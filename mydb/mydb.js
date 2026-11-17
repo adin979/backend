@@ -49,6 +49,7 @@ const mydb = {
         })
         .then(result=>{
             const newSetCookie = result.headers.get('set-cookie')
+            console.log(newSetCookie)
             if(newSetCookie)this.cookie = newSetCookie.split(';');
             return result.json()
         })
