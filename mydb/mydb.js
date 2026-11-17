@@ -58,9 +58,9 @@ const mydb = {
             },
             Credential:'include'
         })
-        .then((result)=>result.json())
+        .then((result)=>{result.json()})
         .then((data)=>{
-            console.log(data)
+            this.token=data.accessToken
             data.accessToken})
         .catch(error=>console.error(error))
     }
