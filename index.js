@@ -93,15 +93,6 @@ app.get('/',(req,res)=>{
 app.post('/register',(req,res)=>{
     const {username,password,role}=req.body
     db.query(`SELECT username FROM users WHERE username = ${username} LIMIT = 1`,(error,result)=>{
-        if(!result||result===undefined){db.query(
-            `CREATE TABLE users`,(error,result)=>{
-                return db.query(`INSERT INTO users (id,username,password,role) VALUES ('',${username},${password},${role})`,(error,result)=>{
-                    if(error)return res.status(parseInt(error.status)).json({success:false,error:error});   
-                    return res.json({success:true,message:`Daftar berhasil`,data:result.data})
-                })
-            })
-        }
-        console.error(error)
         if(error)return res.status(parseInt(error.status)).json({success:false,error:error});
         if(result&&result.length>0)return res.status(400).json({success:false,error:`Username ${username} sudah digunakan, silahkan ganti!`})
         db.query(`INSERT INTO users (id,username,password,role) VALUES ('',${username},${password},${role})`,(error,result)=>{

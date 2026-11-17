@@ -67,7 +67,7 @@ const mydb = {
                 return this.login(this.username,this.password)
                 .then(data=>{
                     this.token=data
-                    return data
+                    return data 
                 })
                 .catch(error=>{throw new Error(error)})
             }
