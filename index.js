@@ -101,6 +101,7 @@ app.post('/register',(req,res)=>{
                 })
             })
         }
+        console.error(error)
         if(error)return res.status(parseInt(error.status)).json({success:false,error:error});
         if(result&&result.length>0)return res.status(400).json({success:false,error:`Username ${username} sudah digunakan, silahkan ganti!`})
         db.query(`INSERT INTO users (id,username,password,role) VALUES ('',${username},${password},${role})`,(error,result)=>{
