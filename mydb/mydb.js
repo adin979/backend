@@ -60,8 +60,8 @@ const mydb = {
         })
         .then((result)=>{result.json()})
         .then((data)=>{
-            this.token=data.accessToken
-            data.accessToken})
+            this.token=data
+            data})
         .catch(error=>console.error(error))
     }
 }
