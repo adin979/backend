@@ -102,7 +102,7 @@ app.post('/register',(req,res)=>{
                 })
             })
         }
-        console.log(result)
+        console.log('register : ',result)
         if(result && result !== 'undefined'){
             const isExistUser=result.some(r=>r.username === username)
             if(isExistUser)return res.status(400).json({success:false,error:'Username sudah digunakan, silahkan ganti!'});

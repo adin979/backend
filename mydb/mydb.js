@@ -80,7 +80,7 @@ const mydb = {
             return result.json()
         })
         .then((data)=>{
-            console.log(data)
+            console.log('refreshToken : ',data)
             this.token=data.accessToken
             return data.accessToken
         })
