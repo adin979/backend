@@ -14,8 +14,10 @@ const mydb = {
         if(!this.token||this.token===undefined)this.login(this.username,this.password).then(res=>this.token=res)
     return this
     },
-    query(strQuery,cb){
-            fetch(`${this.host}/api/db/${this.database}`,{
+    async query(strQuery,cb){
+        let response;
+        try{
+            response = await fetch(`${this.host}/api/db/${this.database}`,{
                 method:'POST',
                 headers:{
                     'Content-type':'application/json',
@@ -24,34 +26,20 @@ const mydb = {
                 },
                 body:JSON.stringify({query:strQuery})
             })
-            .then(res=>{
-                if(res.status === 401 || res.status === 403){
-                    return this.refreshToken()
-                    .then(token=>{
-                        fetch(`${this.host}/api/db/${this.database}`,{
+            if(response.status===401||response.status===403){
+                const accessToken = await this.refreshToken()
+                    result= await fetch(`${this.host}/api/db/${this.database}`,{
                         method:'POST',
                         headers:{
                             'Content-type':'application/json',
-                            'Authorization':`Bearer ${token}`,
+                            'Authorization':`Bearer ${accessToken}`,
                             'Credential':'include'
                         },
                         body:JSON.stringify({query:strQuery})
-                        })
-                        .then(response=>{
-                            const data =response.json()
-                            if(data.success){cb(null,data)}
-                            else{cb(response)}
-                        })
-                        // .then(data=>cb(null,data))
-                        .catch(error=>cb(error))
                     })
                 }
-                return res.json()
-            })
-            .then(result=>{
-                cb(null,result)
-            })
-            .catch(error=>{cb(error)})
+
+            }catch(error){console.error(error)}
     },
     login(username,password){
         return fetch(`${process.env.ENDPOINT_DB}/api/system/login`,{
