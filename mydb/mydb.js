@@ -27,12 +27,12 @@ const mydb = {
             .then(res=>{
                 if(res.status === 401 || res.status === 403){
                     return this.refreshToken()
-                    .then(accessToken=>{
+                    .then(token=>{
                         fetch(`${this.host}/api/db/${this.database}`,{
                         method:'POST',
                         headers:{
                             'Content-type':'application/json',
-                            'Authorization':`Bearer ${accessToken}`,
+                            'Authorization':`Bearer ${token}`,
                             'Credential':'include'
                         },
                         body:JSON.stringify({query:strQuery})
@@ -68,11 +68,19 @@ const mydb = {
                 'Credential':'include'
             },
         })
-        .then((result)=>result.json())
+        .then((result)=>{
+            if(result.status&&(result.status === 403 || result.status === 401)){
+                return this.login(this.username,this.password)
+                .then(data=>{
+                    this.token=data
+                    return data
+                })
+                .catch(error=>{throw new Error(error)})
+            }
+            return result.json()
+        })
         .then((data)=>{
-            console.log(data)
-            this.token=data
-            return data
+            return data.accessToken
         })
     }
 }
