@@ -27,12 +27,12 @@ const mydb = {
             .then(res=>{
                 if(res.status === 401 || res.status === 403){
                     return this.refreshToken()
-                    .then(token=>{
+                    .then(accessToken=>{
                         fetch(`${this.host}/api/db/${this.database}`,{
                         method:'POST',
                         headers:{
                             'Content-type':'application/json',
-                            'Authorization':`Bearer ${token}`,
+                            'Authorization':`Bearer ${accessToken}`,
                             'Credential':'include'
                         },
                         body:JSON.stringify({query:strQuery})
