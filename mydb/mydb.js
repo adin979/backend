@@ -1,3 +1,4 @@
+const { response } = require("express")
 
 const mydb = {
     host:'',
@@ -5,6 +6,7 @@ const mydb = {
     password:'',
     database:'',
     token:null,
+    cookie:null,
     createConnection(object) {
         this.host = object.host
         this.username = object.username
@@ -23,7 +25,7 @@ const mydb = {
                         'Content-type':'application/json',
                         'Authorization':`Bearer ${token}`,
                     },
-                    Credential:'include',
+                    ...(this.cookie?{'Cookie':this.cookie}:{}),
                     body:JSON.stringify({query:strQuery})
                 })
             }
@@ -34,7 +36,6 @@ const mydb = {
                 response = await fetchData(accessToken)
             }   
             const data =await response.json()
-            console.log('query  : ',data)
             if(data.success){cb(null,data)}
             else{cb({status:response.status,message:data.error})}          
             }catch(error){console.error("query error : ",error);cb(error)}
@@ -43,9 +44,14 @@ const mydb = {
         return fetch(`${process.env.ENDPOINT_DB}/api/system/login`,{
             method:'POST',
             headers:{'Content-type':'application/json'},
+            ...(this.cookie?{'Cookie':this.cookie}:{}),
             body:JSON.stringify({username:username,password:password})
         })
-        .then(result=>result.json())
+        .then(result=>{
+            const newSetCookie = result.headers.get('set-cookie')
+            if(newSetCookie)this.cookie = newSetCookie.split(';');
+            return result.json()
+        })
         .then(data=> data.token)
         .catch(error=>console.error(error))
     },
@@ -56,7 +62,7 @@ const mydb = {
                 'Content-type':'application/json',
                 'Authorization':`Bearer ${this.token}`
             },
-            Credential:'include'
+            ...(this.cookie?{'Cookie':this.cookie}:{})
         })
         .then((result)=>{result.json()})
         .then((data)=>{
