@@ -68,8 +68,10 @@ const uploadFile=(fileBuffer)=>{
 
 app.post('/parse-document',upload.single('image'),(req,res)=>{
     if(!req.file)return res.status(400).json({success:false,error:'File harus diisi'});
+    let public_id
     uploadFile(req.file.buffer)
     .then(result=>{
+        public_id=result.public_id
         const filePath = cloudinary.utils.private_download_url(result.public_id,'jpg',{expires_at:Math.floor(Date.now()/1000)+(60*5),attachment:false})
         return fetch(apiGenai,{
             method:'POST',
@@ -78,9 +80,11 @@ app.post('/parse-document',upload.single('image'),(req,res)=>{
         })
         .then(response=>response.json())
         .then(result=>{
-            const imageData = result.data
-            imageData.file_path=public_id
-            return res.json({success:true,message:'Data berhasil diurai',data:imageData})
+            const jsonData = result.data
+            const data = JSON.parse(jsonData)
+            data['image_url']=public_id
+            console.log(data)
+            return res.json({success:true,message:'Data berhasil diurai',data:data})
         }).catch(error=>res.status(500).json({success:false,error:error}))
     })
 })
@@ -104,6 +108,7 @@ app.post('/register',(req,res)=>{
 })
 app.post('/login',valReqBody,(req,res)=>{
     const {username,password} = req.body
+    console.log(username)
     db.query(`SELECT * FROM users WHERE username = '${username}'`,async(error,result)=>{
         if(error)return res.status(500).json({success:false,error:error.message});
         if(!result||result.length===0)return res.status(400).json({success:false,error:'user tidak ketemu'})
