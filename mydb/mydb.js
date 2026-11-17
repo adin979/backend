@@ -25,8 +25,8 @@ const mydb = {
                         'Content-type':'application/json',
                         'Authorization':`Bearer ${token}`,
                     },
-                    credentials:'include',
-                    // ...(this.cookie?{'Cookie':this.cookie}:{}),
+                    // credentials:'include',
+                    ...(this.cookie?{'Cookie':this.cookie}:{}),
                     body:JSON.stringify({query:strQuery})
                 })
             }
@@ -45,8 +45,8 @@ const mydb = {
         return fetch(`${process.env.ENDPOINT_DB}/api/system/login`,{
             method:'POST',
             headers:{'Content-type':'application/json'},
-            // ...(this.cookie?{'Cookie':this.cookie}:{}),
-            credentials:'include',
+            ...(this.cookie?{'Cookie':this.cookie}:{}),
+            // credentials:'include',
             body:JSON.stringify({username:username,password:password})
         })
         .then(result=>{
@@ -65,8 +65,8 @@ const mydb = {
                 'Content-type':'application/json',
                 'Authorization':`Bearer ${this.token}`
             },
-            credentials:'include'
-            // ...(this.cookie?{'Cookie':this.cookie}:{})
+            // credentials:'include'
+            ...(this.cookie?{'Cookie':this.cookie}:{})
         })
         .then((result)=>result.json())
         .then((data)=>{
