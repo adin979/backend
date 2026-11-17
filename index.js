@@ -102,7 +102,7 @@ app.post('/register',(req,res)=>{
             })
         }
         console.log(result)
-        const isExistUser=result !== undefined?result.some(r=>r.username === username):false
+        const isExistUser=result !== 'undefined'?result.some(r=>r.username === username):false
         if(!!isExistUser)return res.status(400).json({success:false,error:'Username sudah digunakan, silahkan ganti!'});
         if(error)return res.status(500).json({success:false,error:error.message});
         db.query(`INSERT INTO users (id,username,password,role) VALUES ('',${username},${password},${role})`,(error,result)=>{
