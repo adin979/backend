@@ -92,8 +92,7 @@ app.get('/',(req,res)=>{
 
 app.post('/register',(req,res)=>{
     const {username,password,role}=req.body
-    db.query(`SELECT username FROM users`,(error,result)=>{
-        if(error)return res.status(500).json({success:false,error:error})
+    db.query(`SELECT username FROM users WHERE username = ${username} LIMIT = 1`,(error,result)=>{
         if(!result||result===undefined){db.query(
             `CREATE TABLE users`,(error,result)=>{
                 return db.query(`INSERT INTO users (id,username,password,role) VALUES ('',${username},${password},${role})`,(error,result)=>{
@@ -102,11 +101,8 @@ app.post('/register',(req,res)=>{
                 })
             })
         }
-        console.log('register : ',result)
-        if(result && result !== 'undefined'){
             const isExistUser=result.some(r=>r.username === username)
             if(isExistUser)return res.status(400).json({success:false,error:'Username sudah digunakan, silahkan ganti!'});
-        }
         if(error)return res.status(500).json({success:false,error:error.message});
         db.query(`INSERT INTO users (id,username,password,role) VALUES ('',${username},${password},${role})`,(error,result)=>{
             if(error)return res.status(500).json({success:false,error:error.message})        
