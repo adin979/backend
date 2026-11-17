@@ -33,9 +33,8 @@ const mydb = {
                 this.token=accessToken
                 response = await fetchData(accessToken)
             }   
-            // console.log("query : ",response.json())
             const data =response.json()
-            if(data.success){cb(null,response)}
+            if(data.success){cb(null,data)}
             else{cb({status:response.status,message:data.error})}          
             }catch(error){console.error("query error : ",error);cb(error)}
     },
