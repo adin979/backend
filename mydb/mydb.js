@@ -39,11 +39,11 @@ const mydb = {
                 })
                 const data =await response.json()
                 if(data.success){cb(data)}
-                else{response}
+                else{cb({status:response.status,message:data.error})}
             }
             const data =await response.json()
             if(data.success){cb(null,response)}
-            else{cb(response)}          
+            else{cb({status:response.status,message:data.error})}          
             }catch(error){console.error("query error : ",error);cb(error)}
     },
     login(username,password){
