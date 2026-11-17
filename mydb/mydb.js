@@ -39,9 +39,9 @@ const mydb = {
                 })
             }
             const data =await response.json()
-            console.log(data)
+            console.log('query : ',data)
             cb(null,data)          
-            }catch(error){console.error(error);cb(error)}
+            }catch(error){console.error("query error : ",error);cb(error)}
     },
     login(username,password){
         return fetch(`${process.env.ENDPOINT_DB}/api/system/login`,{
