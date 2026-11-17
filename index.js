@@ -40,22 +40,11 @@ cloudinary.config({
     api_key:process.env.CLOUDINARY_API_KEY,
     api_secret:process.env.CLOUDINARY_API_SECRET
 })
-// const storage = multer.diskStorage({
-//     destination:(req,file,cb)=>{    
-//         const uploadDir =path.join(__dirname,'./uploads')    
-//         if(!fs.existsSync(uploadDir))fs.mkdirSync(uploadDir,{recursive:true});
-//         cb(null,uploadDir)
-//     },
-//     filename:(req,file,cb)=>{
-//         const uniqSuffix = Date.now()+'-'+Math.round(Math.random()*1E9)
-//         cb(null,uniqSuffix+path.extname(file.originalname))
-//     }
-// })
+
 const upload = multer({
     storage:multer.memoryStorage(),
     limit:{fileSize:4*1024*1024}
 })
-// const upload = multer({storage:storage})
 
 const uploadFile=(fileBuffer)=>{
     return new Promise((resolve,reject)=>{
@@ -123,11 +112,11 @@ app.post('/register',(req,res)=>{
 })
 app.post('/login',valReqBody,(req,res)=>{
     const {username,password} = req.body
-    db.query(`SELECT * FROM users WHERE username = '${username}'`,(error,result)=>{
+    db.query(`SELECT * FROM users WHERE username = '${username}'`,async(error,result)=>{
         if(error)return res.status(500).json({success:false,error:error.message});
-        const {id,username:user,password:pass,role}=result.data[0]
         if(!result||result.length===0)return res.status(400).json({success:false,error:'user tidak ketemu'})
-        const validatedPassword =  bcrypt.compare(password,pass)
+        const {id,username:user,password:pass,role}=result.data[0]
+        const validatedPassword = await  bcrypt.compare(password,pass)
         if(!validatedPassword)return res.status(400).json({success:false,error:'password salah!'});
         const token = jwt.sign(
             {
