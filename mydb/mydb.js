@@ -80,6 +80,7 @@ const mydb = {
             return result.json()
         })
         .then((data)=>{
+            console.log(data)
             this.token=data.accessToken
             return data.accessToken
         })
