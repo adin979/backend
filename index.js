@@ -101,9 +101,8 @@ app.post('/register',(req,res)=>{
                 })
             })
         }
-            const isExistUser=result.some(r=>r.username === username)
-            if(isExistUser)return res.status(400).json({success:false,error:'Username sudah digunakan, silahkan ganti!'});
         if(error)return res.status(500).json({success:false,error:error.message});
+        if(result.length>0)return res.status(400).json({success:false,error:`Username ${username} sudah digunakan, silahkan ganti!`})
         db.query(`INSERT INTO users (id,username,password,role) VALUES ('',${username},${password},${role})`,(error,result)=>{
             if(error)return res.status(500).json({success:false,error:error.message})        
             return res.json({success:true,message:`Daftar berhasil`,data:result.data})
