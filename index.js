@@ -106,6 +106,7 @@ app.post('/login',valReqBody,(req,res)=>{
     db.query(`SELECT * FROM users WHERE username = '${username}'`,async(error,result)=>{
         if(error)return res.status(500).json({success:false,error:error.message});
         if(!result||result.length===0)return res.status(400).json({success:false,error:'user tidak ketemu'})
+            console.log('login : ', result)
         const {id,username:user,password:pass,role}=result.data[0]
         // const validatedPassword = await  bcrypt.compare(password,pass)
         const validatedPassword = pass === password
