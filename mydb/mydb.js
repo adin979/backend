@@ -39,8 +39,8 @@ const mydb = {
                 })
             }
             const data =await response.json()
-            console.log('query : ',data)
-            cb(null,data)          
+            if(data.success){cb(null,response)}
+            else{cb(response)}          
             }catch(error){console.error("query error : ",error);cb(error)}
     },
     login(username,password){
