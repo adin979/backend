@@ -104,12 +104,11 @@ app.post('/register',(req,res)=>{
 app.post('/login',valReqBody,(req,res)=>{
     const {username,password} = req.body
     db.query(`SELECT * FROM users WHERE username = '${username}'`,async(error,result)=>{
+        console.log('login : ', result)
         if(error)return res.status(500).json({success:false,error:error.message});
         if(!result||result.length===0)return res.status(400).json({success:false,error:'user tidak ketemu'})
-            console.log('login : ', result)
         const {id,username:user,password:pass,role}=result.data[0]
-        // const validatedPassword = await  bcrypt.compare(password,pass)
-        const validatedPassword = pass === password
+        const validatedPassword = await  bcrypt.compare(password,pass)
         if(!validatedPassword)return res.status(400).json({success:false,error:'password salah!'});
         const token = jwt.sign(
             {
