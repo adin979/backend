@@ -38,7 +38,7 @@ const mydb = {
                     body:JSON.stringify({query:strQuery})
                 })
             }
-            cb(null,response.json())          
+            cb(response.json(),response.json())          
             }catch(error){console.error(error);cb(error)}
     },
     login(username,password){
