@@ -37,8 +37,12 @@ const mydb = {
                         },
                         body:JSON.stringify({query:strQuery})
                         })
-                        .then(response=>response.json())
-                        .then(data=>cb(null,data))
+                        .then(response=>{
+                            const data =response.json()
+                            if(data.success){cb(null,data)}
+                            else{cb(response)}
+                        })
+                        // .then(data=>cb(null,data))
                         .catch(error=>cb(error))
                     })
                 }
