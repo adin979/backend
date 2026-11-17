@@ -80,7 +80,7 @@ const mydb = {
             return result.json()
         })
         .then((data)=>{
-            localStorage.setItem('accessToken',data.accessToken)
+            this.token=data.accessToken
             return data.accessToken
         })
     }
