@@ -116,7 +116,8 @@ app.post('/login',valReqBody,(req,res)=>{
         if(error)return res.status(500).json({success:false,error:error.message});
         if(!result||result.length===0)return res.status(400).json({success:false,error:'user tidak ketemu'})
         const {id,username:user,password:pass,role}=result.data[0]
-        const validatedPassword = await  bcrypt.compare(password,pass)
+        // const validatedPassword = await  bcrypt.compare(password,pass)
+        const validatedPassword = pass === password
         if(!validatedPassword)return res.status(400).json({success:false,error:'password salah!'});
         const token = jwt.sign(
             {
