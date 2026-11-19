@@ -10,8 +10,7 @@ const app = express()
 const port = process.env.PORT || 3000
 // DEPENDENCIES==================
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS?
-ALLOWED_ORIGINS.split(',').map(s=>s.trim()):[]
+const allowedOrigins = process.env.ALLOWED_ORIGINS?process.env.ALLOWED_ORIGINS.split(',').map(s=>s.trim()):[]
 
 app.use(cors({
     origin:function(origin,callback){
