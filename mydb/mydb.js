@@ -17,7 +17,6 @@ const mydb = {
     return this
     },
     async query(strQuery,cb){
-        try{
             const fetchData =async(token)=>{
                 return await fetch(`${this.host}/api/db/${this.database}`,{
                     method:'POST',
@@ -26,11 +25,12 @@ const mydb = {
                         'Authorization':`Bearer ${token}`,
                     },
                     credentials:'include',
-                    // ...(this.cookie?{'Cookie':this.cookie}:{}),
+                    ...(this.cookie?{'Cookie':this.cookie}:{}),
                     body:JSON.stringify({query:strQuery})
                 })
             }
             let response = await fetchData(this.token)
+        try{
             if(response.status===401||response.status===403){
                 const accessToken = await this.refreshToken()
                 this.token=accessToken
@@ -39,13 +39,14 @@ const mydb = {
             const data =await response.json()
             if(data.success){cb(null,data)}
             else{cb({status:response.status,message:data.error})}          
-            }catch(error){console.error("query error : ",error);cb(error)}
+            }catch(error){
+                console.error("query error : ",error);cb(error)}
     },
     login(username,password){
         return fetch(`${process.env.ENDPOINT_DB}/api/system/login`,{
             method:'POST',
             headers:{'Content-type':'application/json'},
-            // ...(this.cookie?{'Cookie':this.cookie}:{}),
+            ...(this.cookie?{'Cookie':this.cookie}:{}),
             credentials:'include',
             body:JSON.stringify({username:username,password:password})
         })
@@ -64,14 +65,23 @@ const mydb = {
                 'Content-type':'application/json',
                 'Authorization':`Bearer ${this.token}`
             },
-            credentials:'include'
-            // ...(this.cookie?{'Cookie':this.cookie}:{})
+            credentials:'include',
+            ...(this.cookie?{'Cookie':this.cookie}:{})
         })
-        .then((result)=>result.json())
+        .then((result)=>{
+            if(result.status&&result.status === 401 ){
+                return this.login(this.username,this.password)
+                .then(res=>{
+                    this.token=res
+                    return res
+                })
+            }
+            return result.json().accessToken
+        })
         .then((data)=>{
-            console.log(data)
-            this.token=data.accessToken
-            data.accessToken})
+            this.token=data
+            return data
+        })
         .catch(error=>console.error(error))
     }
 }
