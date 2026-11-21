@@ -1,4 +1,3 @@
-const { response } = require("express")
 
 const mydb = {
     host:'',
@@ -39,11 +38,10 @@ const mydb = {
             const data =await response.json()
             if(data.success){cb(null,data)}
             else{cb({status:response.status,message:data.error})}          
-            }catch(error){
-                console.error("query error : ",error);cb(error)}
+            }catch(error){console.error("query error : ",error);cb(error)}
     },
     login(username,password){
-        return fetch(`${process.env.ENDPOINT_DB}/api/system/login`,{
+        return fetch(`${this.host}/api/system/login`,{
             method:'POST',
             headers:{'Content-type':'application/json'},
             ...(this.cookie?{'Cookie':this.cookie}:{}),

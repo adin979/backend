@@ -234,7 +234,39 @@ app.post('/warga',authenticateToken,(req,res)=>{
 app.put('/warga/:id',authenticateToken,(req,res)=>{
     const {id} = req.params
     const{nama,no_kk,nik}=req.body
+    console.log(req.body)
     db.query(`UPDATE warga SET nama = ${nama} , no_kk = ${no_kk} , nik = ${nik} WHERE id = ${id}`,(error,result)=>{
+        if(error)return error
+        return res.json({success:true,message:`Data dengan id "${id}" berhasil diubah`,data:result.data})
+    })
+})
+
+app.put('/datakk/:id',authenticateToken,(req,res)=>{
+    const allowedFields=[
+        'no_kk',
+        'nama_kepala_keluarga',
+        'alamat',
+        'rt_rw',
+        'desa_kelurahan',
+        'kecamatan',
+        'kabupaten_kota',
+        'provinsi',
+        'image_url'
+    ]
+    const data={}
+    const {id} = req.params
+    const body =req.body
+    allowedFields.map(field=>{
+        if(body[field] !== undefined){
+            if(typeof body[field] === 'object'&& body[field] !== null){
+                return res.status(400).json({success:false,error:`Format data tidak valid pada kolom ${field}!!!`})
+            }
+        }
+        data[field]=body[field]
+    })
+    if(Object.keys(data) === 0)res.status(400).json({success:false,error:'Tidak ada data valid untuk diupdate!'});
+    const forSend=Object.keys(data).map(key=>` ${key} = '${data[key]}' `)
+    db.query(`UPDATE data_kk SET ${forSend} WHERE id = '${id}'`,(error,result)=>{
         if(error)return error
         return res.json({success:true,message:`Data dengan id "${id}" berhasil diubah`,data:result.data})
     })
